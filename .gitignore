@@ -1,0 +1,55 @@
+# --- данные ---
+*.parquet
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.sha256
+datasets/
+lerobot_cheese/
+lerobot_cheese_act/
+act_data/
+quadrant_src/
+
+# --- модели и чекпоинты ---
+outputs/
+checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+
+# --- логи ---
+*.log
+logs/
+wandb/
+
+# --- окружения и кэши ---
+.venv/
+venv/
+.conda/
+.cache/
+.local/
+.nv/
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- системное и секреты ---
+.bash_logout
+.bashrc
+.profile
+.wget-hsts
+.gitconfig
+.config/
+.ipython/
+.jupyter/
+.env
+*.env
+.git-credentials
+*.ipynb
+.lesshst
+models/
+runs/
+robot-pizza-cup/

@@ -1,0 +1,22 @@
+[project]
+name = "smolvla"
+version = "0.1.0"
+description = "Minimal SmolVLA port for fine-tuning and inference on custom data"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.2",
+    "torchvision>=0.17",     # required at runtime by transformers SmolVLM video processor
+    "transformers==5.3.0",
+    "safetensors>=0.4",
+    "huggingface_hub>=0.24",
+    "pillow>=10",
+    "num2words>=0.5",        # optional dep of transformers SmolVLM processor; needed for numeric prompts
+    "pyarrow>=16",
+]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["smolvla*"]
