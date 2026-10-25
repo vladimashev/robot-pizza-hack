@@ -53,3 +53,14 @@ __pycache__/
 models/
 runs/
 robot-pizza-cup/
+
+# --- v2 pipeline: data, crops, models ---
+v2/station/
+v2/lerobot/
+v2/lerobot_clean/
+v2/lerobot_compat/
+v2/analysis/
+v2/analysis_clean/
+v2/checker/crops/
+v2/checker/*.csv
+v2/checker/*.pt
