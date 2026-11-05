@@ -7,7 +7,7 @@ OUT=${OUT:-$HOME/outputs/smolvla_quadrants}
 rm -rf "$OUT"
 nohup python -m lerobot.scripts.train --policy.path=lerobot/smolvla_base \
   --dataset.repo_id=local/lerobot_cheese_act --dataset.root=$HOME/lerobot_cheese_act \
-  --dataset.image_transforms.enable=true \
+  --dataset.image_transforms.enable=true --dataset.video_backend=pyav \
   --batch_size=64 --steps=$STEPS --save_freq=5000 \
   --output_dir="$OUT" --job_name=$(basename "$OUT") \
   --policy.device=cuda --policy.push_to_hub=false --wandb.enable=false \
