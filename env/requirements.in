@@ -1,0 +1,11 @@
+# Top-level deps; requirements.lock pins the full set (Python 3.10, CUDA 12.8 wheels).
+# Regenerate: uv pip compile env/requirements.in --python-version 3.10 \
+#   --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match -o env/requirements.lock
+torch==2.7.1                # cu128 build: needed for RTX 50xx (Blackwell), fine on older GPUs
+torchvision==0.22.1
+lerobot[smolvla]==0.3.3     # pulls datasets 3.6 (dataset v2.1 layout used here), transformers
+av                          # video decode (lerobot pyav backend, checker scripts) + exporter encode
+pandas
+pyarrow
+opencv-python-headless      # pizza locator, failure checker overlays
+matplotlib                  # analyze.py plots

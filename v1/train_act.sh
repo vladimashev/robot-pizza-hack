@@ -7,7 +7,7 @@ for Q in top-left top-right bottom-right bottom-left; do
   rm -rf ~/outputs/act_$Q
   nohup python -m lerobot.scripts.train --policy.type=act \
     --dataset.repo_id=local/act_$Q --dataset.root=$HOME/act_data/$Q \
-    --batch_size=8 --steps=$STEPS --save_freq=10000 \
+    --dataset.video_backend=pyav --batch_size=8 --steps=$STEPS --save_freq=10000 \
     --output_dir=$HOME/outputs/act_$Q --job_name=act_$Q \
     --policy.device=cuda --policy.push_to_hub=false --wandb.enable=false \
     "$@" > ~/train_act_$Q.log 2>&1 &

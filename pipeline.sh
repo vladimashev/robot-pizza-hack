@@ -4,7 +4,8 @@
 #   policy    one SmolVLA on ~/v2/lerobot_compat/$VARIANT -> ~/outputs/smolvla_v2_$VARIANT
 #   checkers  roi.json, topping checker (checker.pt), change checker (change.pt)
 # Inputs: ~/datasets/<src>.parquet + <src>.manifest.json (see data/a_prompts.py SOURCES).
-# Env: conda env `lerobot` with lerobot[smolvla]==0.3.3, torch cu128, pyav, opencv, pandas.
+# Env: env/setup.sh (conda env `lerobot`: lerobot[smolvla]==0.3.3, torch 2.7.1 cu128, pyav, opencv, pandas).
+# Video is decoded with pyav: the torchcodec wheel lerobot pulls in needs CUDA NPP libs that are not installed.
 # VARIANT=full|nogripper|nostate (data/c_compat.py). nogripper/nostate zero state dims at train time, so the robot
 # runner must zero the same dims (robot/run_challenge.py --zero-state-dims). Which variant was deployed is not recorded.
 set -euo pipefail
@@ -30,7 +31,7 @@ policy)
   rm -rf "$OUT"
   python -m lerobot.scripts.train --policy.path=lerobot/smolvla_base \
     --dataset.repo_id=local/v2_$VARIANT --dataset.root=$HOME/v2/lerobot_compat/$VARIANT \
-    --dataset.image_transforms.enable=true \
+    --dataset.image_transforms.enable=true --dataset.video_backend=pyav \
     --batch_size=64 --steps=$STEPS --save_freq=5000 \
     --output_dir="$OUT" --job_name=$(basename "$OUT") \
     --policy.device=cuda --policy.push_to_hub=false --wandb.enable=false \

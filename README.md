@@ -24,9 +24,21 @@ Code only. Data, converted datasets and weights live outside the repo (see `.git
 | `v1/` | First experiment: cheese only, one ACT per quadrant or one SmolVLA |
 | `norma/smolvla_py` | NormaCore SmolVLA trainer, patched to take the joint count from the data (8 on ElRobot) |
 
-## Train
+## Setup
 
-Env: conda env `lerobot` with `lerobot[smolvla]==0.3.3`, torch cu128, pyav, opencv, pandas.
+    bash env/setup.sh          # conda env `lerobot` + ~/norma-core + ~/robot-pizza-cup, then env/check_env.py
+    conda activate lerobot
+
+- Python 3.10, `torch==2.7.1+cu128`, `lerobot[smolvla]==0.3.3` (datasets 3.6); every package is pinned in
+  [env/requirements.lock](env/requirements.lock), top-level deps in [env/requirements.in](env/requirements.in).
+- Needs an NVIDIA driver with CUDA 12.8 (>= 570); cu128 is also what RTX 50xx cards require.
+- norma-core is cloned at the Station release used at the hackathon (`v0.1.0-beta.10`); an existing
+  `~/norma-core` is kept (`NORMA_CORE_ROOT` to point elsewhere).
+- Training decodes video with pyav (`--dataset.video_backend=pyav`): the torchcodec wheel that lerobot pulls in
+  fails to load without the CUDA NPP libraries.
+- `env/check_env.py` re-checks an env: GPU, lerobot policies, video decode, repo modules, Station client.
+
+## Train
 
     bash pipeline.sh prep                    # ~/datasets -> ~/v2/lerobot_compat/{full,nogripper,nostate}
     VARIANT=full bash pipeline.sh policy     # one SmolVLA -> ~/outputs/smolvla_v2_full
