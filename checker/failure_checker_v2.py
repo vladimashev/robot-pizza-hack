@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from change_checker import ChangeChecker
 from pizza_locator import PizzaLocator
 
-H = "/home/jovyan"
+H = os.path.expanduser("~")
 MODEL, ROI_JSON = f"{H}/v2/checker/change.pt", f"{H}/v2/checker/roi.json"
 REF_SRC, REF_EP = f"{H}/v2/lerobot/cheese-r1r10-2026-10-24", 0
 TOPPINGS = {"pepperoni"}                                     # cheese is not reliable (51% detected)

@@ -6,10 +6,10 @@ calibrated once on a reference frame.
     cx, cy, r = loc.locate(top_rgb)                                  # sector circle on this frame
     boxes = loc.sector_boxes(cx, cy, r, top_rgb.shape)
     change_checker.roi = boxes"""
-import json
+import json, os
 import numpy as np, cv2
 
-ROI_JSON = "/home/jovyan/v2/checker/roi.json"
+ROI_JSON = os.path.expanduser("~/v2/checker/roi.json")
 
 
 class PizzaLocator:
