@@ -14,10 +14,10 @@ Usage: python t_eval_v2.py [thr ...]    -> tables + ~/v2/checker/v2_eval.csv"""
 import json, os, sys
 import av, numpy as np, pandas as pd
 
-sys.path.insert(0, "/home/jovyan/v2/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from failure_checker_v2 import REF_LOCATED, FailureCheckerV2
 
-H = "/home/jovyan"
+H = os.path.expanduser("~")
 ROOT, MAN = f"{H}/v2/lerobot", f"{H}/datasets"
 TOPPING = {"cheese-r1r10-2026-10-24": "cheese", "pepperoni-r1r10-2026-10-24": "pepperoni",
            "pepperoni-on-cheese-r1r5-2026-10-24": "pepperoni"}

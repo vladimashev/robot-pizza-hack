@@ -2,7 +2,7 @@
 failure checker deciding after every pepperoni step whether the step is repeated.
 
 Rebuilt after the laptop runtime (smolvla_py scripts/run_challenge.py + pizza/robot.py + pizza/recipe.py) was
-lost; the checker contract follows v2/scripts/FAILURE_CHECKER_V2.md. Station and model I/O come from
+lost; the checker contract follows checker/FAILURE_CHECKER_V2.md. Station and model I/O come from
 run_lerobot_policy.py (same dir), so the same env works: lerobot==0.3.3 [smolvla], station_py, opencv.
 
 Run:
@@ -42,7 +42,7 @@ from PIL import Image
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(REPO / "v2" / "scripts"))
+sys.path.insert(0, str(REPO / "checker"))
 
 QUADS = ("TL", "TR", "BR", "BL")                     # clockwise, as recorded
 QUAD_NAMES = {"TL": "top-left", "TR": "top-right", "BR": "bottom-right", "BL": "bottom-left"}

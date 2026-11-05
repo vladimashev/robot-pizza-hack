@@ -3,12 +3,12 @@
 #   prep      ~/datasets -> prompts from manifests -> LeRobot v2.1 (~/v2/lerobot) -> merged training sets
 #   policy    one SmolVLA on ~/v2/lerobot_compat/$VARIANT -> ~/outputs/smolvla_v2_$VARIANT
 #   checkers  roi.json, topping checker (checker.pt), change checker (change.pt)
-# Inputs: ~/datasets/<src>.parquet + <src>.manifest.json (see a_prompts.py SOURCES).
+# Inputs: ~/datasets/<src>.parquet + <src>.manifest.json (see data/a_prompts.py SOURCES).
 # Env: conda env `lerobot` with lerobot[smolvla]==0.3.3, torch cu128, pyav, opencv, pandas.
-# VARIANT=full|nogripper|nostate (c_compat.py). nogripper/nostate zero state dims at train time, so the robot
-# runner must zero the same dims (run_challenge.py --zero-state-dims). Which variant was deployed is not recorded.
+# VARIANT=full|nogripper|nostate (data/c_compat.py). nogripper/nostate zero state dims at train time, so the robot
+# runner must zero the same dims (robot/run_challenge.py --zero-state-dims). Which variant was deployed is not recorded.
 set -euo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")"                                       # repo root
 STAGES=${*:-prep policy checkers}
 VARIANT=${VARIANT:-full}
 STEPS=${STEPS:-20000}
@@ -17,14 +17,14 @@ SOURCES="cheese-r1r10-2026-10-24 pepperoni-r1r10-2026-10-24 pepperoni-on-cheese-
 
 for stage in $STAGES; do case $stage in
 prep)
-  python a_prompts.py                                         # -> ~/v2/station/<src>/<src>.parquet
+  python data/a_prompts.py                                         # -> ~/v2/station/<src>/<src>.parquet
   [ -d ~/robot-pizza-cup ] || git clone https://github.com/FunRobots/robot-pizza-cup.git ~/robot-pizza-cup
   for s in $SOURCES; do                                       # exporter refuses existing outputs
     [ -d ~/v2/lerobot/$s ] || python ~/robot-pizza-cup/elrobot/scripts/export_to_lerobot.py \
       ~/v2/station/$s ~/v2/lerobot/$s --camera-names top front
   done
-  python analyze.py                                           # -> ~/v2/analysis, review flagged.csv
-  python c_compat.py                                          # -> ~/v2/lerobot_compat/{full,nogripper,nostate}
+  python data/analyze.py                                           # -> ~/v2/analysis, review flagged.csv
+  python data/c_compat.py                                          # -> ~/v2/lerobot_compat/{full,nogripper,nostate}
   ;;
 policy)
   rm -rf "$OUT"
@@ -37,10 +37,10 @@ policy)
     2>&1 | tee ~/train_$(basename "$OUT").log
   ;;
 checkers)
-  python d_roi.py                                             # -> ~/v2/checker/roi.json (check: pizza [118,131,28])
-  python e_checker_dataset.py && python f_train_checker.py    # -> checker.pt (topping present?)
-  python g_pair_dataset.py && python h_train_change.py        # -> change.pt (topping added?)
-  python failure_checker_v2.py                                # smoke test on the reference episode
+  python checker/d_roi.py                                             # -> ~/v2/checker/roi.json (check: pizza [118,131,28])
+  python checker/e_checker_dataset.py && python checker/f_train_checker.py    # -> checker.pt (topping present?)
+  python checker/g_pair_dataset.py && python checker/h_train_change.py        # -> change.pt (topping added?)
+  python checker/failure_checker_v2.py                                # smoke test on the reference episode
   ;;
 *) echo "unknown stage: $stage (prep|policy|checkers)"; exit 1 ;;
 esac; done
