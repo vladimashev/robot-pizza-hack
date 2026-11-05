@@ -23,6 +23,26 @@ NormaCore Station. Place it next to norma-core `smolvla_py/scripts/run_policy.py
 `--norma-root`). Start with `--dry-run`. ACT: one checkpoint per quadrant, no prompt,
 use `--n-action-steps 10` (data is 10 Hz).
 
+## v2 pipeline (cheese + pepperoni, failure checker)
+    bash v2/scripts/pipeline.sh prep        # prompts from manifests -> LeRobot -> ~/v2/lerobot_compat/{full,nogripper,nostate}
+    VARIANT=full bash v2/scripts/pipeline.sh policy     # 1 SmolVLA -> ~/outputs/smolvla_v2_full
+    bash v2/scripts/pipeline.sh checkers    # roi.json, checker.pt, change.pt
+
+## Run a challenge
+`scripts/run_challenge.py`: recipe -> steps (topping, sector) -> one prompt per step; after each pepperoni step
+the failure checker (v2/scripts/FAILURE_CHECKER_V2.md) decides whether the step is repeated (`--retries 2`).
+
+    python scripts/run_challenge.py ch2 --plan-only                       # steps and prompts, no robot
+    python scripts/run_challenge.py recipe --recipe "Build a pizza: ..." --plan-only
+    python scripts/run_challenge.py ch2 --checkpoint <pretrained_model> --bus-serial <FOLLOWER_SERIAL> \
+        --checker-ref ~/v2/checker/ref_top.png --checker-log logs/run1    # add --dry-run to only locate the pizza
+
+- Start with the arm at home: its pose at connect is the home pose, a step ends when the arm is back there.
+- Prompts must match training exactly. The v2 prompts were in the manifests: pass `--prompts prompts.json`
+  (`{"pepperoni:TL": "..."}`) or check with `--tasks-jsonl <dataset>/meta/tasks.jsonl`.
+- `nogripper` / `nostate` checkpoints need `--zero-state-dims 7` / `--zero-state-dims 0,1,2,3,4,5,6,7`.
+- Without `--checker-ref` the checker uses the fixed roi.json boxes (= v1).
+
 ## Notes
 - `norma/smolvla_py` is the NormaCore trainer; its own `run_policy.py` only loads
   smolvla_py checkpoints and drives 6 motors by default.
