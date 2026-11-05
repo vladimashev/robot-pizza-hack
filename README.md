@@ -1,17 +1,15 @@
-# robot-pizza-hack
+# Pizza-making robot with SmolVLA
 
-Our solution for the Robotics Pizza Hackathon (October 2026). We took **1st place**.
+1st place solution of the Robotics Pizza Hackathon (October 2026).
 
-The task was to teach a robot arm to make a pizza out of the props kit: spread cheese evenly and put salami
+The task was to teach a robot arm to make a pizza out of the props kit: spread cheese evenly and put pepperoni
 slices on the pizza. We used ElRobot (7+1 DoF arm from NormaCore, 8 servos) with two cameras, one above the
 table and one on the wrist. The robot completed all three challenges:
 
-1. **Precision Topping**: 6 salami slices spread over the pizza, and cheese spread over the pizza, each as a separate run.
-2. **Recipe Assembly**: the whole pizza in one run from a written instruction, cheese first and then 6 salami.
-3. **Mystery Pizza**: a new pizza position, swapped bowls and a new recipe with a region ("6 salami on the left
+1. **Precision Topping**: 6 pepperoni slices spread over the pizza, and cheese spread over the pizza, each as a separate run.
+2. **Recipe Assembly**: the whole pizza in one run from a written instruction, cheese first and then 6 pepperoni.
+3. **Mystery Pizza**: a new pizza position, swapped bowls and a new recipe with a region ("6 pepperoni on the left
    half, then cheese over the whole pizza"). No new demos, fine-tuning or code changes were allowed.
-
-In the code and datasets salami is called `pepperoni`. It is the same prop.
 
 ## How it works
 
@@ -22,7 +20,7 @@ stage it is on. We split the work in two:
   of the pizza, then go back home. The sector and the topping are given in the text prompt, e.g.
   `put the pepperoni on the top-left quadrant of the pizza`;
 - a **script on top** (`robot/run_challenge.py`) turns the recipe into a list of steps, runs the policy once
-  per step with the matching prompt and checks the result after every salami step. If the slice did not
+  per step with the matching prompt and checks the result after every pepperoni step. If the slice did not
   land, the step is repeated (up to 2 times).
 
 The rules allow this: everything that sends joint commands is the learned policy, and the script only picks
@@ -32,10 +30,10 @@ the prompt and decides when a step is done.
 recipe text -> steps (topping, sector) -> SmolVLA, one prompt per step -> arm back home
                                               ^                                 |
                                               |   retry          top camera before/after
-                                              +---- no ---- salami added to the sector? (checker)
+                                              +---- no ---- pepperoni added to the sector? (checker)
 ```
 
-Example: "place 6 salami on the left half, then spread cheese over the whole pizza" becomes 6 salami steps
+Example: "place 6 pepperoni on the left half, then spread cheese over the whole pizza" becomes 6 pepperoni steps
 alternating top-left / bottom-left, then one cheese step per quadrant.
 
 ## Model
@@ -64,8 +62,8 @@ episode.
 | Dataset | Rounds | What |
 |---|---|---|
 | `cheese-r1r10` | 10 | cheese into each quadrant |
-| `pepperoni-r1r10` | 10 | salami slices on an empty pizza |
-| `pepperoni-on-cheese-r1r5` | 5 | salami on a pizza already covered with cheese, as in Recipe Assembly |
+| `pepperoni-r1r10` | 10 | pepperoni slices on an empty pizza |
+| `pepperoni-on-cheese-r1r5` | 5 | pepperoni on a pizza already covered with cheese, as in Recipe Assembly |
 
 Targets are the four quadrants (TL, TR, BR, BL) plus the center. Processing (`data/`):
 
@@ -80,11 +78,11 @@ Targets are the four quadrants (TL, TR, BR, BL) plus the center. Processing (`da
 
 To know whether a step worked we compare the top camera frame before and after the step. A ResNet18 takes the
 crop of one sector, 6 channels: the "after" image and the "after minus before" difference. It outputs the
-probability that cheese or salami was added in that sector (`checker/h_train_change.py`).
+probability that cheese or pepperoni was added in that sector (`checker/h_train_change.py`).
 
 Trained on pairs from our own episodes (`g_pair_dataset.py`), rounds 5 and 10 held out for validation. On the
-held-out rounds with threshold 0.65 it found 357 of 360 salami placements with 4 false alarms. On cheese it
-was close to a coin flip, so only salami steps are checked.
+held-out rounds with threshold 0.65 it found 357 of 360 pepperoni placements with 4 false alarms. On cheese it
+was close to a coin flip, so only pepperoni steps are checked.
 
 For Mystery Pizza the pizza can be moved, and fixed sector boxes would no longer match. `pizza_locator.py`
 finds the sauce by color (red channel in Lab, Otsu threshold) once at the start of the run, and the sector
@@ -144,7 +142,7 @@ step ends when the arm comes back there.
 # print the steps and prompts, no robot needed
 python robot/run_challenge.py ch2 --plan-only
 python robot/run_challenge.py recipe --plan-only \
-    --recipe "Build a pizza: place 6 salami on the left half, then spread cheese over the whole pizza."
+    --recipe "Build a pizza: place 6 pepperoni on the left half, then spread cheese over the whole pizza."
 
 # real run
 python robot/run_challenge.py ch2 \
