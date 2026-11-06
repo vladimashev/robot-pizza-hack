@@ -14,6 +14,7 @@ STAGES=${*:-prep policy checkers}
 VARIANT=${VARIANT:-full}
 STEPS=${STEPS:-20000}
 OUT=${OUT:-$HOME/outputs/smolvla_v2_$VARIANT}
+PIZZA=${PIZZA:-118 131 28}     # sauce circle cx cy r in the top camera (224x224), see checker/roi.json
 SOURCES="cheese-r1r10-2026-10-24 pepperoni-r1r10-2026-10-24 pepperoni-on-cheese-r1r5-2026-10-24"
 
 for stage in $STAGES; do case $stage in
@@ -38,7 +39,7 @@ policy)
     2>&1 | tee ~/train_$(basename "$OUT").log
   ;;
 checkers)
-  python checker/d_roi.py                                             # -> ~/v2/checker/roi.json (check: pizza [118,131,28])
+  python checker/d_roi_manual.py $PIZZA                               # -> ~/v2/checker/roi.json + roi_overview.jpg
   python checker/e_checker_dataset.py && python checker/f_train_checker.py    # -> checker.pt (topping present?)
   python checker/g_pair_dataset.py && python checker/h_train_change.py        # -> change.pt (topping added?)
   python checker/failure_checker_v2.py                                # smoke test on the reference episode
