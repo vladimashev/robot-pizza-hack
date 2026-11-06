@@ -133,43 +133,95 @@ Creates the conda env `lerobot` (Python 3.10, torch 2.7.1+cu128, lerobot 0.3.3, 
 Training reads video with pyav (`--dataset.video_backend=pyav`), because the torchcodec build that LeRobot
 installs does not load without the CUDA NPP libs.
 
-## Training
+## Training from recordings
 
-```bash
-bash pipeline.sh prep                    # recordings -> ~/v2/lerobot_compat/{full,nogripper,nostate}
-VARIANT=full bash pipeline.sh policy     # SmolVLA -> ~/outputs/smolvla_v2_full
-bash pipeline.sh checkers                # roi.json, checker.pt, change.pt
+Put the three Station recordings with their manifests into `~/datasets`:
+
+```
+~/datasets/cheese-r1r10-2026-10-24.parquet                 + .manifest.json
+~/datasets/pepperoni-r1r10-2026-10-24.parquet              + .manifest.json
+~/datasets/pepperoni-on-cheese-r1r5-2026-10-24.parquet     + .manifest.json
 ```
 
-## Running on the robot
+The names are hardcoded in `SOURCES` / `ADDED` / `LABELS` at the top of the scripts in `data/` and `checker/`
+(and in `pipeline.sh`), so for other recordings change them there. Each manifest needs per episode
+`episode_start_ns`, `task` (the prompt), `target` (TL, TR, BR, BL, CENTER or GAP) and `round`.
 
-Station has to be running, and the arm has to be at home at start: the pose at connect is taken as home, and a
-step ends when the arm comes back there.
+Then run the three stages:
 
 ```bash
-# print the steps and prompts, no robot needed
-python robot/run_challenge.py ch2 --plan-only
-python robot/run_challenge.py recipe --plan-only \
-    --recipe "Build a pizza: place 6 pepperoni on the left half, then spread cheese over the whole pizza."
+conda activate lerobot
+bash pipeline.sh prep                    # recordings -> ~/v2/lerobot -> ~/v2/lerobot_compat/{full,nogripper,nostate}
+VARIANT=full bash pipeline.sh policy     # SmolVLA -> ~/outputs/smolvla_v2_full
+bash pipeline.sh checkers                # ~/v2/checker: roi.json, checker.pt, change.pt
+```
 
-# real run
+- `prep` also writes `~/v2/analysis/flagged.csv` with suspicious episodes. Episodes listed in `~/v2/exclude.json`
+  (`{"<dataset>": [episode_index, ...]}`) are skipped by the checker scripts.
+- `policy` takes `STEPS` (default 20000) and `OUT`. Checkpoints are saved every 5000 steps to
+  `$OUT/checkpoints/<step>/pretrained_model`, the latest one also as `checkpoints/last`. The log goes to
+  `~/train_<name>.log`. There is no offline eval, try a few checkpoints on the robot.
+- `checkers` builds the sector boxes around the sauce circle `PIZZA="cx cy r"` (default `118 131 28`, our camera,
+  as in `checker/roi.json`), learns which target goes to which image quadrant from the data, then trains both
+  checkers. Look at `~/v2/checker/roi_overview.jpg`: the boxes should sit on the pizza. With a different camera
+  pose measure the circle on a top frame and pass it in `PIZZA`.
+
+Stages can be run separately and in any order once `prep` is done.
+
+## Running with trained weights
+
+You need:
+
+- the policy checkpoint, a `pretrained_model` folder (`config.json` + `model.safetensors`);
+- the checker files `roi.json` and `change.pt` in `~/v2/checker` (or pass `--checker-dir`). Without them run
+  with `--failure-checker off`: no checks and no retries, everything else works;
+- NormaCore Station running on the machine the arm is plugged into (`~/norma-core` from `env/setup.sh`,
+  or `bash scripts/run.sh` in `~/robot-pizza-cup/elrobot`), and the follower bus serial from the Station
+  web UI (http://localhost:8889).
+
+The pizza locator also wants a reference top-camera frame with the pizza at its usual place. If you have the
+converted data it can be taken from there:
+
+```bash
+python -c "import sys; sys.path.insert(0, 'checker'); from failure_checker_v2 import reference_frame; \
+from PIL import Image; Image.fromarray(reference_frame()).save('$HOME/v2/checker/ref_top.png')"
+```
+
+Otherwise save one frame from the top camera with the arm at home and an empty pizza in place.
+
+Start with the arm at home: the pose at connect is taken as home, and a step ends when the arm comes back there.
+
+```bash
+# 1. steps and prompts only, no robot needed
+python robot/run_challenge.py ch2 --plan-only
+
+# 2. connect, find the pizza, save the overlay to logs/dry/start.png; the arm does not move
+python robot/run_challenge.py ch2 --dry-run --bus-serial <FOLLOWER_SERIAL> \
+    --checker-ref ~/v2/checker/ref_top.png --checker-log logs/dry
+
+# 3. real run
 python robot/run_challenge.py ch2 \
-    --checkpoint ~/outputs/smolvla_v2_full/checkpoints/020000/pretrained_model \
+    --checkpoint ~/outputs/smolvla_v2_full/checkpoints/last/pretrained_model \
     --bus-serial <FOLLOWER_SERIAL> \
     --checker-ref ~/v2/checker/ref_top.png --checker-log logs/run1
+
+# any recipe, e.g. Mystery Pizza part B
+python robot/run_challenge.py recipe --checkpoint ... --bus-serial ... \
+    --recipe "Build a pizza: place 6 pepperoni on the left half, then spread cheese over the whole pizza."
 ```
 
 `ch1-cheese`, `ch1-pepperoni`, `ch2` and `ch3a` are the fixed challenge recipes, `recipe` takes any text. Some
 useful flags:
 
-- `--dry-run`: connects, finds the pizza and saves the overlay, the arm does not move;
 - `--prompts prompts.json`: prompts for each `topping:SECTOR` if they differ from the default template. They
   have to match the training prompts exactly, `--tasks-jsonl <dataset>/meta/tasks.jsonl` checks that;
 - `--zero-state-dims 7` or `0,1,2,3,4,5,6,7` for `nogripper` / `nostate` checkpoints;
-- `--time-limit`: no new step after this many seconds (3 min for challenge 1, 8 min for 2 and 3).
+- `--time-limit`: no new step after this many seconds (3 min for challenge 1, 8 min for 2 and 3);
+- `--norma-root` if NormaCore is not in `~/norma-core`.
 
 The log in `--checker-log` has `events.jsonl` and an overlay image for every checked step, handy to see why a
-step was repeated.
+step was repeated. `python robot/run_challenge.py --help` lists everything else (step timeouts, home tolerance,
+retries).
 
 ## v1: cheese only
 
