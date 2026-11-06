@@ -3,7 +3,7 @@
 1st place solution of the Robotics Pizza Hackathon (October 2026).
 
 <p align="center"><img src="docs/demo.gif" width="480" alt="ElRobot making a pizza"><br>
-<sub>Full run: cheese, then pepperoni (20x speed)</sub></p>
+<sub>Full run: cheese, then pepperoni (8x speed)</sub></p>
 
 The task was to teach a robot arm to make a pizza out of the props kit: spread cheese evenly and put pepperoni
 slices on the pizza. We used ElRobot (7+1 DoF arm from NormaCore, 8 servos) with two cameras, one above the
