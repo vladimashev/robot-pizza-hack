@@ -101,7 +101,15 @@ env/          pinned requirements, setup script, env check
 norma/        NormaCore SmolVLA trainer, patched to read the joint count from the data (8 on ElRobot)
 ```
 
-Data and weights are not in the repo. Scripts expect them in the home dir:
+## Datasets and weights
+
+| What | Link |
+|---|---|
+| Datasets (Station parquet + manifests, LeRobot v2.1) | coming soon |
+| SmolVLA checkpoint | coming soon |
+| Checker models (`roi.json`, `checker.pt`, `change.pt`) | coming soon |
+
+They are not in the repo. Scripts expect them in the home dir:
 
 | What | Where |
 |---|---|
